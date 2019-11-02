@@ -1,7 +1,7 @@
 
 # Feature
 
-![archi](https://raw.githubusercontent.com/racheliurui/aws_cloudformation/master/sam/dynamic_dns/images/Diagram.PNG)
+![archi](https://raw.githubusercontent.com/racheliurui/aws_infrascode/master/sam/dynamic_dns/images/Diagram.PNG)
 
 - Dynamically update DNS record value using EC2 and RDS tag name.
 
@@ -10,7 +10,7 @@
 
 ```shell
 cd ~/github
-git clone git@github.com:racheliurui/aws_cloudformation.git
+git clone git@github.com:racheliurui/aws_infrascode.git
 ```
 
 
@@ -18,7 +18,7 @@ git clone git@github.com:racheliurui/aws_cloudformation.git
 # Step 2: Set up Variable
 
 ```powershell
-cd ~/github/aws_cloudformation/sam/dynamic_dns
+cd ~/github/aws_infrascode/sam/dynamic_dns
 Copy-Item -Path "./sample.ps1" -Destination "./vault.ps1"
 ```
 
@@ -28,7 +28,7 @@ Copy-Item -Path "./sample.ps1" -Destination "./vault.ps1"
 ## Deploy Dynamic DNS to certain region
 
 ```powershell
-cd ~/github/aws_cloudformation/sam/dynamic_dns
+cd ~/github/aws_infrascode/sam/dynamic_dns
 $region='ap-southeast-2'
 $regionBucketName=$s3bucket+"."+$region
 aws configure set region $region --profile $profile
