@@ -1,0 +1,103 @@
+# Stack Feature
+# A S3 bucket will be created
+# The S3 bucket will have public read access
+# Create a policy and attach to S3
+# Created policy only allows certain ip address to read
+# Create a user to have programable access to the bucket
+# After stack being created, you can generate the User access key and started to use it
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AWS CloudFormation to create a S3 bucket have readonly access only to certain IP address; create a user to have programable access to the bucket'
+Mappings:
+###########
+  Constants:
+      #Bucket name should not contain uppercase characters
+      S3BucketName:
+        value: "racheltests3bucket"
+      # The source IP address allowed to read the S3 content
+      SourceIP:
+        value: "0.0.0.0/0"
+      S3ProgrammableUserName:
+        value: "testtest"
+###############################################
+
+Resources:
+
+##########S3 Resource Definition#####################
+  MyS3Bucket:
+       Type: AWS::S3::Bucket
+       Properties:
+           AccessControl: PublicRead
+           BucketName: !FindInMap [Constants,"S3BucketName",value]
+           WebsiteConfiguration:
+              ErrorDocument: "error.html"
+              IndexDocument: "index.html"
+           Tags:
+             -
+               Key: "S3BucketName"
+               Value: "Dev"
+############S3 Policies#############################
+  MyS3BucketPolicy:
+    Type: "AWS::S3::BucketPolicy"
+    DependsOn: ["MyS3Bucket"]
+    Properties:
+      Bucket:
+        Ref: "MyS3Bucket"
+      PolicyDocument:
+        #Policy document must be version 2012-10-17 or greater.
+        Version: "2012-10-17"
+        Statement:
+        -
+          Action:
+            - "s3:*"
+          Effect: "Deny"
+          Resource:
+            Fn::Join:
+              - ""
+              -
+                - "arn:aws:s3:::"
+                -
+                  Ref: "MyS3Bucket"
+                - "/*"
+          Principal: "*"
+          Condition:
+            NotIpAddress:
+              aws:SourceIp:
+                - !FindInMap [Constants,"SourceIP",value]
+  # The policy created to attach to certain user
+  ProgrammableUserPolicy:
+    Type: "AWS::IAM::ManagedPolicy"
+    DependsOn: ["MyS3Bucket"]
+    Properties:
+      PolicyDocument:
+        #Policy document must be version 2012-10-17 or greater.
+        Version: "2012-10-17"
+        Statement:
+        -
+          Action:
+            - "s3:ListBucket"
+            - "s3:GetBucketLocation"
+          Effect: "Allow"
+          Resource: [!GetAtt [MyS3Bucket, Arn]]
+        -
+          Action:
+            - "s3:PutObject"
+            - "s3:GetObject"
+            - "s3:DeleteObject"
+          Effect: "Allow"
+          Resource:
+            Fn::Join:
+              - ""
+              -
+                - "arn:aws:s3:::"
+                -
+                  Ref: "MyS3Bucket"
+                - "/*"
+
+  # create User and attach that ProgrammableUserPolicy to the user
+  S3ProgrammableUser:
+    Type: "AWS::IAM::User"
+    Properties:
+      UserName: !FindInMap [Constants,"S3ProgrammableUserName",value]
+      ManagedPolicyArns:
+        - !Ref ProgrammableUserPolicy
+    DependsOn: ["ProgrammableUserPolicy"]

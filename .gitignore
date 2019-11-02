@@ -1,0 +1,5 @@
+.metadata
+env.sh
+vault*
+packaged.*
+.aws-sam

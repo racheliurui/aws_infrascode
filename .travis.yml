@@ -1,0 +1,25 @@
+env:
+  global:
+    # include $HOME/.local/bin for `aws`
+    - PATH=$HOME/.local/bin:$PATH
+
+
+before_install:
+  - pip install --user awscli
+
+
+script:
+    - |
+        ApplyCFM () {
+          templatePath=$1
+          stackName=$2
+          aws s3 cp $TRAVIS_BUILD_DIR/${templatePath} s3://${s3bucket}/${templatePath}
+          aws cloudformation validate-template --template-url https://${s3bucket}.s3-${region}.amazonaws.com/${templatePath} --region ${region}
+          aws cloudformation create-change-set --stack-name ${stackName} --template-url https://${s3bucket}.s3-${region}.amazonaws.com/${templatePath} --change-set-name ${stackName}  --region ${region}
+          numOfChange=`aws cloudformation  describe-change-set  --stack-name ${stackName} --change-set-name ${stackName} --query 'length(Changes[])' --region ${region}`
+          if [ $numOfChange -gt 0 ]
+            then
+              aws cloudformation update-stack --stack-name ${stackName} --template-url https://${s3bucket}.s3-${region}.amazonaws.com/${templatePath} --region ${region}
+          fi
+        }
+        ApplyCFM VPC.yml VPC

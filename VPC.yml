@@ -1,0 +1,227 @@
+
+
+AWSTemplateFormatVersion: '2010-09-09'
+
+Mappings:
+  Constants:
+       VPCCIDR:
+         value: "10.1.0.0/16"
+       CIDRA:
+         value: "10.1.1.0/24"
+       CIDRB:
+         value: "10.1.2.0/24"
+       CIDRC:
+         value: "10.1.3.0/24"
+###############################################
+#
+#   Resource Section
+#
+###############################################
+
+Resources:
+
+#################Below TO DELETE############################
+
+  VPC:
+      Type: "AWS::EC2::VPC"
+      Properties:
+        EnableDnsSupport: true
+        EnableDnsHostnames: true
+        CidrBlock:   !FindInMap [Constants,"VPCCIDR",value]
+
+
+  PublicSubneta:
+      Type: "AWS::EC2::Subnet"
+      Properties:
+        AvailabilityZone: !Select
+              - 0
+              - Fn::GetAZs: !Ref "AWS::Region"
+        VpcId:
+          Ref: "VPC"
+        CidrBlock:   !FindInMap [Constants,"CIDRA",value]
+        MapPublicIpOnLaunch: true
+
+  PublicSubnetb:
+      Type: "AWS::EC2::Subnet"
+      Properties:
+        AvailabilityZone: !Select
+              - 1
+              - Fn::GetAZs: !Ref "AWS::Region"
+        VpcId:
+          Ref: "VPC"
+        CidrBlock:   !FindInMap [Constants,"CIDRB",value]
+        MapPublicIpOnLaunch: true
+
+  PublicSubnetc:
+      Type: "AWS::EC2::Subnet"
+      Properties:
+        AvailabilityZone: !Select
+              - 2
+              - Fn::GetAZs: !Ref "AWS::Region"
+        VpcId:
+          Ref: "VPC"
+        CidrBlock:   !FindInMap [Constants,"CIDRC",value]
+        MapPublicIpOnLaunch: true
+
+  InternetGateway:
+      Type: "AWS::EC2::InternetGateway"
+
+
+  GatewayToInternet:
+      Type: "AWS::EC2::VPCGatewayAttachment"
+      Properties:
+        VpcId:
+          Ref: "VPC"
+        InternetGatewayId:
+          Ref: "InternetGateway"
+
+  PublicRouteTable:
+      Type: "AWS::EC2::RouteTable"
+      Properties:
+        VpcId:
+          Ref: "VPC"
+
+  PublicRoute:
+      Type: "AWS::EC2::Route"
+      DependsOn: "GatewayToInternet"
+      Properties:
+        RouteTableId:
+          Ref: "PublicRouteTable"
+        DestinationCidrBlock: "0.0.0.0/0"
+        GatewayId:
+          Ref: "InternetGateway"
+
+  PublicSubnetRouteTableAssociationa:
+      Type: "AWS::EC2::SubnetRouteTableAssociation"
+      Properties:
+        SubnetId:
+          Ref: "PublicSubneta"
+        RouteTableId:
+          Ref: "PublicRouteTable"
+
+
+  PublicSubnetRouteTableAssociationb:
+      Type: "AWS::EC2::SubnetRouteTableAssociation"
+      Properties:
+        SubnetId:
+          Ref: "PublicSubnetb"
+        RouteTableId:
+          Ref: "PublicRouteTable"
+
+  PublicSubnetRouteTableAssociationc:
+      Type: "AWS::EC2::SubnetRouteTableAssociation"
+      Properties:
+        SubnetId:
+          Ref: "PublicSubnetc"
+        RouteTableId:
+          Ref: "PublicRouteTable"
+
+###############################################
+#
+#   ACL Section
+#
+###############################################
+
+
+  PublicSubNetACL:
+      Type: AWS::EC2::NetworkAcl
+      Properties:
+         VpcId: !Ref VPC
+
+  EgressAclEntry:
+      Type: AWS::EC2::NetworkAclEntry
+      Properties:
+         NetworkAclId:
+            Ref: PublicSubNetACL
+         RuleNumber: 100
+         Protocol: -1
+         RuleAction: allow
+         Egress: true
+         CidrBlock: 0.0.0.0/0
+         Icmp:
+            Code: -1
+            Type: -1
+         PortRange:
+            From: 53
+            To: 53
+
+  VPCSubnetIngressAclEntry:
+      Type: AWS::EC2::NetworkAclEntry
+      Properties:
+         NetworkAclId:
+            Ref: PublicSubNetACL
+         RuleNumber: 100
+         Protocol: -1
+         RuleAction: allow
+         Egress: false
+         CidrBlock: !FindInMap [Constants,"VPCCIDR",value]
+         Icmp:
+            Code: -1
+            Type: -1
+         PortRange:
+            From: 53
+            To: 53
+
+  PublicSubnetIngressAclEntry:
+      Type: AWS::EC2::NetworkAclEntry
+      Properties:
+         NetworkAclId:
+            Ref: PublicSubNetACL
+         RuleNumber: 200
+         Protocol: 6
+         RuleAction: allow
+         Egress: false
+         CidrBlock: 0.0.0.0/0
+         PortRange:
+            From: 1
+            To: 65535
+
+
+  Associate2a:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId:
+       Ref: PublicSubNetACL
+      SubnetId: !Ref PublicSubneta
+
+
+  Associate2b:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId:
+       Ref: PublicSubNetACL
+      SubnetId: !Ref PublicSubnetb
+
+  Associate2c:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId:
+       Ref: PublicSubNetACL
+      SubnetId: !Ref PublicSubnetc
+
+Outputs:
+  VpcId:
+    Description: 'The id of the VPC.'
+    Value: !Ref VPC
+    Export:
+      Name: !Sub '${AWS::StackName}-VpcId'
+  PublicSubA:
+    Description: 'The id of the public subnet in AZ a.'
+    Value: !Ref PublicSubneta
+    Export:
+      Name: !Sub '${AWS::StackName}-PublicSubnetA'
+  PublicSubB:
+    Description: 'The id of the public subnet in AZ B.'
+    Value: !Ref PublicSubneta
+    Export:
+      Name: !Sub '${AWS::StackName}-PublicSubnetB'
+  PublicSubC:
+    Description: 'The id of the public subnet in AZ C.'
+    Value: !Ref PublicSubneta
+    Export:
+      Name: !Sub '${AWS::StackName}-PublicSubnetC'
+  CIDR:
+    Description: 'The id of the public subnet in AZ C.'
+    Value: 10.1.0.0/16
+    Export:
+      Name: !Sub '${AWS::StackName}-CIDR'
