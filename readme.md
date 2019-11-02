@@ -3,8 +3,7 @@
 ## Current Status
 
 
-![infra-status](https://api.travis-ci.org/racheliurui/aws_cloudformation.svg?branch=master)
-
+![infra-status](https://travis-ci.org/racheliurui/aws_infrascode.svg?branch=master)
 
 
 ## Travis Environment Variable
