@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: a sample lambda to auto stop all EC2 servers in current region
+
+Resources:
+  lambdarole:
+    Type: "AWS::IAM::Role"
+    Properties:
+       AssumeRolePolicyDocument:
+         Version: 2012-10-17
+         Statement:
+           - Effect: Allow
+             Principal:
+               Service: "lambda.amazonaws.com"
+             Action: "sts:AssumeRole"
+       Path: /
+       Policies:
+         - PolicyName: lambda_autostop_policy
+           PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: [
+                "ec2:Describe*",
+                "ec2:Stop*"
+                ]
+                Resource: '*'
+              - Effect: Allow
+                Action: [
+                "cloudwatch:GetMetricStatistics",
+                "logs:DescribeLogStreams",
+                "logs:GetLogEvents"
+                ]
+                Resource: '*'
+              - Effect: Allow
+                Action: [
+                "logs:CreateLogGroup"
+                ]
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*'
+              - Effect: Allow
+                Action: [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+                ]
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/Lambda_Auto_Stop:*'
+       RoleName: !Sub 'lambda_auto_stop_role_${AWS::Region}'
+
+
+#############################################################
+#
+#  lambda function triggerred by scheduler
+#
+#############################################################
+
+
+  pythonStopEc2:
+    Type: 'AWS::Serverless::Function'
+    DependsOn: ["lambdarole"]
+    Properties:
+      Description: generated from SAM .
+      Runtime: python3.7
+      Role: !Sub 'arn:aws:iam::${AWS::AccountId}:role/lambda_auto_stop_role_${AWS::Region}'
+      FunctionName: Lambda_Auto_Stop
+      Handler: lambda_function.lambda_auto_stop
+      CodeUri: ./src/
+      MemorySize: 128
+      Timeout: 30
+      Events:
+        StopEC2:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 15 * * ? *)

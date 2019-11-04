@@ -6,7 +6,7 @@ sudo su
 amazon-linux-extras enable corretto8
 yum install -y java-1.8.0-amazon-corretto
 yum install -y java-1.8.0-amazon-corretto-devel
-alternatives --config javac
+#alternatives --config javac
 export JAVA_HOME=/usr/lib/jvm/java-1.8.0-amazon-corretto.x86_64
 
 # this will install kafka on EC2 and running in single instance mode for testing purpose
@@ -29,14 +29,13 @@ bin/kafka-server-start.sh config/server.properties &
 #   Create Topics
 #########################
 bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic test
+bin/kafka-topics.sh --zookeeper localhost:2181 --list
 
+bin/kafka-console-producer.sh \
+    --broker-list localhost:9092 \
+    --topic test
 
 bin/kafka-console-consumer.sh \
     --bootstrap-server localhost:9092 \
-    --topic test \
+    --topic sample \
     --from-beginning
-
-bin/kafka-topics.sh --create \
-      --zookeeper localhost:2181 \
-      --replication-factor 1 --partitions 1 \
-      --topic test
