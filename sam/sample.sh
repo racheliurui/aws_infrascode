@@ -1,6 +1,6 @@
 accountId='12345567'
 profile='abc'
-
+region='ap-southeast-2'
 # recommend to use the DNS Domain Name to make it unique
 s3bucket='dns.sam'
 
