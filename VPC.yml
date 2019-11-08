@@ -212,12 +212,12 @@ Outputs:
       Name: !Sub '${AWS::StackName}-PublicSubnetA'
   PublicSubB:
     Description: 'The id of the public subnet in AZ B.'
-    Value: !Ref PublicSubneta
+    Value: !Ref PublicSubnetb
     Export:
       Name: !Sub '${AWS::StackName}-PublicSubnetB'
   PublicSubC:
     Description: 'The id of the public subnet in AZ C.'
-    Value: !Ref PublicSubneta
+    Value: !Ref PublicSubnetc
     Export:
       Name: !Sub '${AWS::StackName}-PublicSubnetC'
   CIDR:
