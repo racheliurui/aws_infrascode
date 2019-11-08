@@ -20,7 +20,6 @@ Mappings:
 
 Resources:
 
-#################Below TO DELETE############################
 
   VPC:
       Type: "AWS::EC2::VPC"
@@ -221,7 +220,7 @@ Outputs:
     Export:
       Name: !Sub '${AWS::StackName}-PublicSubnetC'
   CIDR:
-    Description: 'The id of the public subnet in AZ C.'
+    Description: 'The CIDR of the VPC.'
     Value: 10.1.0.0/16
     Export:
       Name: !Sub '${AWS::StackName}-CIDR'
