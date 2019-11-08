@@ -1,0 +1,91 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: a sample lambda to consume message from Kafka topic and write log
+
+Parameters:
+    KafkaEndpoint:
+        Description: 'kafka bootstrap'
+        Type: 'String'
+    VPCsubnet1:
+        Description: 'VPCsubnet1'
+        Type: 'String'
+    VPCsecuritygroup:
+        Description: 'VPCsecuritygroup'
+        Type: 'String'
+
+Resources:
+  lambdarole:
+    Type: "AWS::IAM::Role"
+    Properties:
+       AssumeRolePolicyDocument:
+         Version: 2012-10-17
+         Statement:
+           - Effect: Allow
+             Principal:
+               Service: "lambda.amazonaws.com"
+             Action: "sts:AssumeRole"
+       Path: /
+       Policies:
+         - PolicyName: lambda_dynamic_dns_policy
+           PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'ec2:CreateNetworkInterface'
+                  - 'ec2:DescribeNetworkInterfaces'
+                  - 'ec2:DeleteNetworkInterface'
+                Resource: '*'
+              - Effect: Allow
+                Action: [
+                "cloudwatch:GetMetricStatistics",
+                "logs:DescribeLogStreams",
+                "logs:GetLogEvents"
+                ]
+                Resource: '*'
+              - Effect: Allow
+                Action: [
+                "logs:CreateLogGroup"
+                ]
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*'
+              - Effect: Allow
+                Action: [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+                ]
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/Lambda_Kafaka_Consumer:*'
+       RoleName: !Sub 'lambda_kafkaconsumer_role_${AWS::Region}'
+
+
+#############################################################
+#
+#  lambda function triggerred by scheduler to update RDS DNS
+#
+#############################################################
+
+
+  pythonkafkaconsumer:
+    Type: 'AWS::Serverless::Function'
+    DependsOn: ["lambdarole"]
+    Properties:
+      Description: generated from SAM with name kafka_consumer.
+      Runtime: python3.7
+      Role: !Sub 'arn:aws:iam::${AWS::AccountId}:role/lambda_kafkaconsumer_role_${AWS::Region}'
+      FunctionName: Lambda_Kafaka_Consumer
+      Handler: lambda_function.lambda_kafka_consumer
+      CodeUri: ./src/
+      MemorySize: 128
+      Timeout: 30
+      Events:
+        TriggerConsumer:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+      VpcConfig:
+        SubnetIds:
+          - Ref: VPCsubnet1
+        SecurityGroupIds:
+          - Ref: VPCsecuritygroup
+      Environment:
+          Variables:
+             KafkaEndpoint: !Ref KafkaEndpoint

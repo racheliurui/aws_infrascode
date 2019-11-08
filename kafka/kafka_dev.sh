@@ -39,3 +39,7 @@ bin/kafka-console-consumer.sh \
     --bootstrap-server localhost:9092 \
     --topic sample \
     --from-beginning
+
+# TODO
+# Make Kafka Zookeeper autostart
+# Expose version info
