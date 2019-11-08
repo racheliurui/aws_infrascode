@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+###############################################
+Mappings:
+###############################################
+  Constants:
+      AMIID:
+        value: "ami-08a74056dfd30c986"
+      AvailabilityZone1:
+        value: "ap-southeast-2c"
+
+
+Parameters:
+############EC2 Parameters##############
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+
+###############################################
+#
+#   Resource Section
+#
+###############################################
+
+Resources:
+
+##########Security Group Definition#####################
+  KafkaServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security Group for Kafka Dev
+      SecurityGroupIngress:
+      - IpProtocol: "-1"
+        FromPort: -1
+        ToPort: -1
+        CidrIp: 10.1.0.0/16
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 0.0.0.0/0
+      VpcId: !ImportValue VPC-VpcId
+
+  KafkaDevServer:
+      Type: AWS::EC2::Instance
+      Properties:
+        InstanceType: t2.medium
+        SecurityGroupIds: [!Ref TibcoClusterSecurityGroup]
+        PrivateIpAddress: !FindInMap [Constants,"FTLServer1IPAddress",value]
+        KeyName: !Ref 'KeyName'
+        ImageId:  !FindInMap [Constants,"AMIID",value]
+        IamInstanceProfile: "EC2_TibcoServerRole"
+        UserData:
+          Fn::Base64: !Sub
+             - |
+                #!/bin/bash -xe
+                mkdir -p installer
+
+
+
+             - {
+                  SampleVar: !FindInMap [Constants,"AMIID",value],
+               }
+        SubnetId: !ImportValue GAC-DEV-OnPre-VPC-PublicSubnet2c
+        Tags:
+           -
+             Key: "Name"
+             Value:  "dev.kafka"
+
+
+
+####################################################################
+
+
+Outputs:
+  StackName:
+    Description: 'Stack name.'
+    Value: !Sub '${AWS::StackName}'

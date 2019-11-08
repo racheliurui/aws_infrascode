@@ -23,3 +23,4 @@ script:
           fi
         }
         ApplyCFM VPC.yml VPC
+        ApplyCFM kafka/kafka_dev.yml Kafka_Dev
