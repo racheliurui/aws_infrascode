@@ -1,3 +1,7 @@
+accountId='1234567'
+profile='profilename'
+
+
 KafkaEndpoint='kafkaserver:9092'
 VPCsubnet1='subnetid'
 VPCsecuritygroup='securitygroupid'
