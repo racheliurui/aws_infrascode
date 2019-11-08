@@ -220,7 +220,7 @@ Outputs:
     Export:
       Name: !Sub '${AWS::StackName}-PublicSubnetC'
   CIDR:
-    Description: 'The CIDR of the VPC.'
+    Description: 'The CIDR of the VPC'
     Value: 10.1.0.0/16
     Export:
       Name: !Sub '${AWS::StackName}-CIDR'

@@ -54,6 +54,10 @@ Resources:
              - |
                 #!/bin/bash -xe
                 mkdir -p installer
+                wget https://raw.githubusercontent.com/racheliurui/aws_infrascode/master/kafka/kafka_dev.sh
+                chmod +x kafka_dev.sh
+                ./kafka_dev.sh
+
              - {
                   SampleVar: !FindInMap [Constants,"AMIID",value],
                }

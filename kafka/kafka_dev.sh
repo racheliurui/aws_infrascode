@@ -57,8 +57,8 @@ Type=simple
 PIDFile=/usr/local/kafka/logs/kafka.pid
 WorkingDirectory=/opt/kafka_2.12-2.3.0/bin
 #ExecStartPre=
-ExecStart=/opt/kafka_2.12-2.3.0/bin/kafka-server-start.sh /opt/kafka_2.12-2.3.0/config/server.properties
-ExecReload=/opt/kafka_2.12-2.3.0/bin/kafka-server-start.sh /opt/kafka_2.12-2.3.0/config/server.properties
+ExecStart=/opt/kafka_2.12-2.3.0/bin/kafka-server-start.sh /opt/kafka_2.12-2.3.0/config/server.properties &
+ExecReload=/opt/kafka_2.12-2.3.0/bin/kafka-server-start.sh /opt/kafka_2.12-2.3.0/config/server.properties &
 ExecStop=/opt/kafka_2.12-2.3.0/bin/kafka-server-stop.sh
 PrivateTmp=true
 [Install]
