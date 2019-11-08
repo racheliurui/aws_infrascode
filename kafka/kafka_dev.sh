@@ -46,6 +46,8 @@ EOL
 systemctl enable zookeeper.service
 systemctl start zookeeper.service
 
+sleep 1m
+
 cat >/etc/systemd/system/kafka.service <<EOL
 [Unit]
 Description=kafka - dev
