@@ -6,7 +6,7 @@ amazon-linux-extras enable corretto8
 yum install -y java-1.8.0-amazon-corretto
 yum install -y java-1.8.0-amazon-corretto-devel
 #alternatives --config javac
-export JAVA_HOME=/usr/lib/jvm/java-1.8.0-amazon-corretto.x86_64
+export JAVA_HOME=/usr/lib/jvm/java-1.8.0-amazon-corretto.x86_64/jre
 
 # this will install kafka on EC2 and running in single instance mode for testing purpose
 #https://kafka.apache.org/
