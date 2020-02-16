@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: a sample lambda to subscribe message from SNS and publish to elasticsearch
+Parameters:
+  snsArn:
+    Description: sns topic
+    Type: String
+Resources:
+  lambdarole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: /
+      Policies:
+      - PolicyName: lambdaSnsElasticsearch_policy
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action:
+            - 'sns:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+            - ec2:CreateNetworkInterface
+            - ec2:DescribeNetworkInterfaces
+            - ec2:DeleteNetworkInterface
+            Resource: '*'
+          - Effect: Allow
+            Action:
+            - cloudwatch:GetMetricStatistics
+            - logs:DescribeLogStreams
+            - logs:GetLogEvents
+            Resource: '*'
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            Resource:
+              Fn::Sub: arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+          - Effect: Allow
+            Action:
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource:
+              Fn::Sub: arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/lambdaSnsElasticsearch:*
+      RoleName:
+        Fn::Sub: lambdaSnsElasticsearch_role_${AWS::Region}
+
+  pythonsnssub:
+    Type: 'AWS::Serverless::Function'
+    DependsOn: ["lambdarole"]
+    Properties:
+      Description: generated from SAM with name lambdaSnsElasticsearch.
+      Runtime: python3.7
+      Role: !Sub 'arn:aws:iam::${AWS::AccountId}:role/lambdaSnsElasticsearch_role_${AWS::Region}'
+      FunctionName: lambdaSnsElasticsearch
+      Handler: snsSubscriber.lambdaSnsElasticsearch
+      CodeUri: ./src/
+      MemorySize: 128
+      Timeout: 30
+      Events:
+        SNSTopic:
+          Type: SNS
+          Properties:
+             Topic:  !Ref snsArn
+      Environment:
+          Variables:
+             snsArn: !Ref snsArn
