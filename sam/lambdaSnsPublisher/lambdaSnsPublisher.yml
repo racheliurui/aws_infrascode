@@ -1,0 +1,83 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: a sample lambda to subscribe message from SNS and publish to elasticsearch
+Parameters:
+  snsArn:
+    Description: sns topic
+    Type: String
+  minOrdersPerMin:
+    Description: min number of orders per sec
+    Type: String
+  maxOrdersPerMin:
+    Description: max number of orders per sec
+    Type: String
+Resources:
+  lambdarole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: /
+      Policies:
+      - PolicyName: lambdaSnsPublisher_policy
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          # TODO
+          - Effect: Allow
+            Action:
+            - 'sns:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+            - ec2:CreateNetworkInterface
+            - ec2:DescribeNetworkInterfaces
+            - ec2:DeleteNetworkInterface
+            Resource: '*'
+          - Effect: Allow
+            Action:
+            - cloudwatch:GetMetricStatistics
+            - logs:DescribeLogStreams
+            - logs:GetLogEvents
+            Resource: '*'
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            Resource:
+              Fn::Sub: arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+          - Effect: Allow
+            Action:
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource:
+              Fn::Sub: arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/lambdaSnsPublisher:*
+      RoleName:
+        Fn::Sub: lambdaSnsPublisher_role_${AWS::Region}
+
+  pythonsnssub:
+    Type: 'AWS::Serverless::Function'
+    DependsOn: ["lambdarole"]
+    Properties:
+      Description: generated from SAM with name lambdaSnsPublisher.
+      Runtime: python3.7
+      Role: !Sub 'arn:aws:iam::${AWS::AccountId}:role/lambdaSnsPublisher_role_${AWS::Region}'
+      FunctionName: lambdaSnsPublisher
+      Handler: snsPublisher.lambdaSnsPublisher
+      CodeUri: ./src/
+      MemorySize: 128
+      Timeout: 30
+      Events:
+        TriggerProducer:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+      Environment:
+          Variables:
+             snsArn: !Ref snsArn
+             minOrdersPerMin: !Ref minOrdersPerMin
+             maxOrdersPerMin: !Ref maxOrdersPerMin
