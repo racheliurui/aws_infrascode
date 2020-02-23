@@ -5,6 +5,12 @@ Parameters:
   snsArn:
     Description: sns topic
     Type: String
+  eshost:
+    Description: eshost
+    Type: String
+  esregion:
+    Description: esregion
+    Type: String
 Resources:
   lambdarole:
     Type: AWS::IAM::Role
@@ -25,6 +31,11 @@ Resources:
           - Effect: Allow
             Action:
             - 'sns:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+            - 'es:ESHttpPost'
+            - 'es:ESHttpPut'
             Resource: '*'
           - Effect: Allow
             Action:
@@ -72,3 +83,5 @@ Resources:
       Environment:
           Variables:
              snsArn: !Ref snsArn
+             eshost: !Ref eshost
+             esregion: !Ref esregion

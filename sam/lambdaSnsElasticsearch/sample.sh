@@ -13,3 +13,5 @@ export regionBucketName=${s3bucket}.sam.${region}
 
 export snsArn='arn:aws:sns:ap-southeast-2:12345656:testTopic'
 export app='lambdaSnsElasticsearch'
+export eshost='asdgasfdsadfasdf.us-east-1.es.amazonaws.com'
+export esregion='us-east-1'

@@ -40,5 +40,8 @@ sam build --template ${app}.yml --profile $profile --region $region
 sam package --s3-bucket $regionBucketName --output-template packaged.yml  --profile $profile --region $region
 sam deploy --template-file packaged.yml --stack-name sam-${app} --parameter-overrides \
 snsArn=$snsArn \
+esregion=$esregion \
+eshost=$eshost \
 --capabilities CAPABILITY_NAMED_IAM --profile $profile --region $region
+
 ```
