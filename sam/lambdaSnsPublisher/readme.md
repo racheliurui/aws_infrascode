@@ -39,7 +39,7 @@ cd ~/github/aws_infrascode/sam/lambdaSnsPublisher
 . ./vault.sh
 sam build --template ${app}.yml --profile $profile --region $region
 
-sam package --s3-bucket $regionBucketName --output-template packaged.yml  --profile $profile --region $region
+sam package --s3-bucket $regionBucketName --output-template-file packaged.yml  --profile $profile --region $region
 sam deploy --template-file packaged.yml --stack-name sam-${app} --parameter-overrides \
 snsArn=$snsArn \
 minOrdersPerMin="10" \

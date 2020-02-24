@@ -45,6 +45,8 @@ productFullList=getProductFullList()
 def getDummyCoffeeOrder():
     orderId=str(uuid.uuid4())
     now = datetime.now() + timedelta(seconds=random.randint(0,60))
+    dummyItems=getDummyItems()
+    payable=getPayable(dummyItems)
     message={
      "orderId": str(uuid.uuid4()),
      "timestamp": now.__str__(),
