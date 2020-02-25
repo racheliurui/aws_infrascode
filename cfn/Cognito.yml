@@ -1,0 +1,96 @@
+######todo not finished
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'ELK'
+
+Resources:
+  # Creates a user pool for kibana
+######todo not finished
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'ELK'
+
+Resources:
+
+#############
+#
+#  Cognito Part
+#
+#############
+
+
+  # Creates a user pool for kibana
+  CognitoUserPool:
+    Type: "AWS::Cognito::UserPool"
+    Properties:
+      UserPoolName: ELKUserPool
+      AutoVerifiedAttributes:
+        - email
+      MfaConfiguration: "OFF"
+      UsernameConfiguration:
+        CaseSensitive: false
+      Policies:
+        PasswordPolicy:
+            MinimumLength: 8
+            RequireLowercase: "true"
+            RequireNumbers: "true"
+            RequireSymbols: "true"
+            RequireUppercase: "true"
+            TemporaryPasswordValidityDays: 7
+      Schema:
+        - Name: name
+          AttributeDataType: String
+          Mutable: false
+          Required: false
+        - Name: email
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+        - Name: phone_number
+          AttributeDataType: String
+          Mutable: false
+          Required: false
+
+
+  UserPoolClient:
+    Type: "AWS::Cognito::UserPoolClient"
+    Description: "App Client used by AWS ELK"
+    Properties:
+      ClientName: !Sub ${AWS::StackName}-UserPoolClient
+      GenerateSecret: false
+      UserPoolId: !Ref CognitoUserPool
+
+  # The federated identity for our user pool to auth with
+  CognitoIdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      # Generate a name based on the stage
+      IdentityPoolName: !Sub ${AWS::StackName}-CognitoIdentityPool
+      # Don't allow unathenticated users
+      AllowUnauthenticatedIdentities: false
+      # Link to our User Pool
+      CognitoIdentityProviders:
+        - ClientId:
+            Ref: UserPoolClient
+          ProviderName:
+            Fn::GetAtt: [ "CognitoUserPool", "ProviderName" ]
+
+  CognitoUserPoolDomain:
+     Type: "AWS::Cognito::UserPoolDomain"
+     Properties:
+       Domain: 'aaaaaaaatestestestes'
+       UserPoolId: !Ref CognitoUserPool
+
+
+Outputs:
+  StackName:
+    Description: 'Stack name.'
+    Value: !Sub '${AWS::StackName}'
+  CognitoIdentityPoolId:
+    Description: 'CognitoIdentityPoolId'
+    Export:
+      Name:  !Sub '${AWS::StackName}-CognitoIdentityPoolId'
+    Value: !Ref CognitoIdentityPool
+  CognitoUserPoolId:
+    Description: 'Cognito User Pool Id'
+    Export:
+      Name:  !Sub '${AWS::StackName}-CognitoUserPoolId'
+    Value: !Ref CognitoUserPool

@@ -3,7 +3,18 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: 'ELK'
 
 Resources:
+  # Creates a user pool for kibana
+######todo not finished
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'ELK'
 
+Resources:
+
+#############
+#
+#  Cognito Part
+#
+#############
 
   ELKDomainRole:
     Type: "AWS::IAM::Role"
@@ -21,46 +32,7 @@ Resources:
        RoleName: !Sub 'elk_domain_role_${AWS::Region}'
 
 
-  # Creates a user pool for kibana
-  UserPool:
-    Type: "AWS::Cognito::UserPool"
-    Properties:
-      UserPoolName: !Sub ${AuthName}-user-pool
-      AutoVerifiedAttributes:
-        - email
-      MfaConfiguration: "OFF"
-      Policies:
-      PasswordPolicy:
-        MinimumLength: 8
-        RequireLowercase: "true"
-        RequireNumbers: "true"
-        RequireSymbols: "true"
-        RequireUppercase: "true"
-        TemporaryPasswordValidityDays: 7
-      Schema:
-        - Name: name
-          AttributeDataType: String
-          Mutable: false
-          Required: true
-        - Name: email
-          AttributeDataType: String
-          Mutable: true
-          Required: true
-        - Name: phone_number
-          AttributeDataType: String
-          Mutable: false
-          Required: false
-
-  UserPoolClient:
-    Type: "AWS::Cognito::UserPoolClient"
-    Description: "App Client used by AWS ELK"
-    Properties:
-      ClientName: elk-client
-      GenerateSecret: false
-      UserPoolId: !Ref UserPool
-
   ElasticsearchDomain:
-    DependsOn: ['','']
     Type: 'AWS::Elasticsearch::Domain'
     Properties:
       AccessPolicies:
@@ -71,8 +43,8 @@ Resources:
             AWS: '*'
           Action:
           - 'es:ESHttp*'
-          Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${DomainName}/*'
-      DomainName: 'kibana-with-auth'
+          Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/elkdemo/*'
+      DomainName: elkdemo
       #https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/what-is-amazon-elasticsearch-service.html#aes-choosing-version
       ElasticsearchVersion: 7.1
       EBSOptions:
@@ -84,23 +56,16 @@ Resources:
         DedicatedMasterCount: "3"
         DedicatedMasterEnabled: "true"
         DedicatedMasterType: "r5.large.elasticsearch"
-        InstanceCount: "3"
+        #You must choose an even number of data nodes for a two Availability Zone deployment 
+        InstanceCount: "4"
         InstanceType: "r5.large.elasticsearch"
         ZoneAwarenessEnabled: "true"
       CognitoOptions:
           Enabled: "true"
-          IdentityPoolId: String
-          RoleArn: String
-          UserPoolId: String
-      EncryptionAtRestOptions: !If [HasKmsKey, {Enabled: true, KmsKeyId: {'Fn::ImportValue': !Sub '${ParentKmsKeyStack}-KeyId'}}, !Ref 'AWS::NoValue']
-      VPCOptions:
-        SecurityGroupIds:
-        - !Ref SecurityGroup
-        SubnetIds: !If
-        - HasSingleClusterInstance
-        - - {'Fn::ImportValue': !Sub '${ParentVPCStack}-SubnetAPrivate'}
-        - - {'Fn::ImportValue': !Sub '${ParentVPCStack}-SubnetAPrivate'}
-          - {'Fn::ImportValue': !Sub '${ParentVPCStack}-SubnetBPrivate'}
+          IdentityPoolId: !ImportValue  cognito-CognitoIdentityPoolId
+          RoleArn: !GetAtt ELKDomainRole.Arn
+          UserPoolId: !ImportValue cognito-CognitoUserPoolId
+      #EncryptionAtRestOptions:  {Enabled: true, KmsKeyId: asdfasdf}
     UpdatePolicy:
       EnableVersionUpgrade: false
 
