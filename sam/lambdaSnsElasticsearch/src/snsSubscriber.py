@@ -37,3 +37,32 @@ def lambdaSnsElasticsearch(event, context):
     print("ELK Response SNS: " + r.text)
 
     return  r.text
+
+
+
+'''
+{
+ "orderId": "UUID",
+ "timestamp": "YYYYMMDDHHMMSSSSSS",
+ "orderItems": [{
+ "coffeeName": "SageBrew | ElasticBean | CoffeeFormation",
+ "number": 1,
+ "size": "L"
+ },
+ {
+ "coffeeBrandName": "ElesticBean",
+ "number": 1,
+ "size": "S"
+ }
+ ],
+ "orderPayable": 10.4
+ "channel": "alexa | web | connect| button",
+ "total_cups": 2
+ "SageBrew_consumed":
+ "ElasticBean_consumed":
+ "CoffeeFormation_consumed":
+ 
+}
+'''
+
+def enrichOrderInfo(order):
