@@ -29,6 +29,8 @@ coffeeProductList=["Flatwhite","Longblack","Espresso"]
 sizeList=["S","M","L"]
 channels =["alexa","web","connect","button"]
 
+
+
 def getProductFullList():
 
     productList=[]

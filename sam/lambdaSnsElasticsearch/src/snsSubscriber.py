@@ -61,8 +61,7 @@ def lambdaSnsElasticsearch(event, context):
  "SageBrew_consumed":
  "ElasticBean_consumed":
  "CoffeeFormation_consumed":
- 
-}
-'''
 
-def enrichOrderInfo(order):
+}
+
+'''
